@@ -18,3 +18,9 @@ Thumbs.db
 
 # Streamlit Secrets
 .streamlit/secrets.toml
+
+
+
+# Sensitive files & docs
+users_credentials.txt
+docs/
