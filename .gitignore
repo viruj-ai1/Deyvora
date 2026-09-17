@@ -2,7 +2,7 @@
 node_modules/
 
 # Python dependencies
-__pycache__/
+**/__pycache__/
 *.pyc
 .venv/
 venv/
@@ -18,8 +18,6 @@ Thumbs.db
 
 # Streamlit Secrets
 .streamlit/secrets.toml
-
-
 
 # Sensitive files & docs
 users_credentials.txt

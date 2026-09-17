@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useMemo } from 'react';
+import React, { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import { AppContext } from './AppContext';
 import { TASK_STATUS } from '../constants';
 
@@ -321,7 +321,18 @@ const loadReadIds = (): Set<string> => {
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const { currentUser, tasks, users } = useContext(AppContext);
-  const [readIds, setReadIds] = useState<Set<string>>(loadReadIds);
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        setReadIds(new Set<string>(JSON.parse(raw)));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const allNotifications = useMemo(
     () => (tasks && users ? computeNotifications(tasks, users) : []),

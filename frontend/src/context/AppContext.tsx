@@ -8,17 +8,18 @@ const API_BASE = rawApiUrl.endsWith('/api') ? rawApiUrl : `${rawApiUrl}/api`;
 export const AppContext = createContext<any>(null);
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentUser, setLocalCurrentUser] = useState<any>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const stored = localStorage.getItem('currentUser');
-        return stored ? JSON.parse(stored) : null;
-      } catch (e) {
-        return null;
+  const [currentUser, setLocalCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('currentUser');
+      if (stored) {
+        setLocalCurrentUser(JSON.parse(stored));
       }
+    } catch (e) {
+      console.error('Error loading currentUser from localStorage:', e);
     }
-    return null;
-  });
+  }, []);
 
   const setCurrentUser = (user: any) => {
     setLocalCurrentUser(user);
