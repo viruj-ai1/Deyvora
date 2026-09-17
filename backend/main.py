@@ -30,6 +30,21 @@ def startup_event():
         execute_query("ALTER TABLE public.projects ADD COLUMN projected_end VARCHAR;", returning=False)
     except Exception as e:
         print("Migration projected_end:", e)
+    try:
+        execute_query("""
+            DELETE FROM public.tasks 
+            WHERE project_id IN (
+                SELECT id FROM public.projects 
+                WHERE name ILIKE '%LXP%' OR name ILIKE '%Fosravuconazole%'
+            );
+        """, returning=False)
+        execute_query("""
+            DELETE FROM public.projects 
+            WHERE name ILIKE '%LXP%' OR name ILIKE '%Fosravuconazole%';
+        """, returning=False)
+        print("Successfully cleaned up dismissed projects (LXP, Fosravuconazole) on startup.")
+    except Exception as e:
+        print("Migration delete dismissed projects:", e)
 cors_origins_env = os.environ.get("CORS_ORIGINS", "")
 origins = [origin.strip() for origin in cors_origins_env.split(",")] if cors_origins_env else ["*"]
 
