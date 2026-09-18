@@ -545,8 +545,8 @@ export const ReportsTab = ({ projTasks, proj, users, allTaskDates, isClientView 
                 <th className="p-3.5 border-r border-gray-200">Dynamic Start</th>
                 <th className="p-3.5 border-r border-gray-200">Dynamic End</th>
                 <th className="p-3.5 border-r border-gray-200 min-w-[150px]">Progress</th>
-                <th className="p-3.5 border-r border-gray-200">Status</th>
-                <th className="p-3.5">Chain Role</th>
+                <th className={`p-3.5 ${!isClientView ? 'border-r border-gray-200' : ''}`}>Status</th>
+                {!isClientView && <th className="p-3.5">Chain Role</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -561,10 +561,11 @@ export const ReportsTab = ({ projTasks, proj, users, allTaskDates, isClientView 
                 const prog = computeTaskProgress(t);
                 const chainRole = chainMap.get(t.id) || 'Feeding';
                 const dates = allTaskDates?.[t.id];
+                const isProjectStarted = proj?.status && proj.status !== 'Planning' && proj.status !== 'Dismissed';
                 const pStartStr = dates?.plannedStart ? fmtDate(dates.plannedStart) : '-';
                 const pEndStr = dates?.plannedEnd ? fmtDate(dates.plannedEnd) : '-';
-                const dStartStr = dates?.start ? fmtDate(dates.start) : '-';
-                const dEndStr = dates?.end ? fmtDate(dates.end) : '-';
+                const dStartStr = (isProjectStarted && dates?.start) ? fmtDate(dates.start) : '--/--/--';
+                const dEndStr = (isProjectStarted && dates?.end) ? fmtDate(dates.end) : '--/--/--';
 
                 return (
                   <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
@@ -594,15 +595,17 @@ export const ReportsTab = ({ projTasks, proj, users, allTaskDates, isClientView 
                         );
                       })()}
                     </td>
-                    <td className="p-3.5 border-r border-gray-100">
+                    <td className={`p-3.5 ${!isClientView ? 'border-r border-gray-100' : ''}`}>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{t.status}</span>
                     </td>
-                    <td className="p-3.5">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${chainRole === 'Critical' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        }`}>
-                        {chainRole}
-                      </span>
-                    </td>
+                    {!isClientView && (
+                      <td className="p-3.5">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shadow-sm ${chainRole === 'Critical' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          }`}>
+                          {chainRole}
+                        </span>
+                      </td>
+                    )}
                   </tr>
                 );
               })}
