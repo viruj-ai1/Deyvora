@@ -1063,6 +1063,19 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
     const totalAssignedDays = projTasks.reduce((s: number, t: any) => s + (t.assignedDays || 0), 0);
 
     const projTaskDates = projTasks.map((t: any) => allTaskDates[t.id]).filter(Boolean);
+    const plannedStartDates = projTaskDates.map((d: any) => d.plannedStart ? d.plannedStart.getTime() : (d.start ? d.start.getTime() : null)).filter(Boolean) as number[];
+    const plannedEndDates = projTaskDates.map((d: any) => d.plannedEnd ? d.plannedEnd.getTime() : (d.end ? d.end.getTime() : null)).filter(Boolean) as number[];
+
+    const calculatedStart = plannedStartDates.length > 0 ? new Date(Math.min(...plannedStartDates)) : null;
+    const calculatedEnd = plannedEndDates.length > 0 ? new Date(Math.max(...plannedEndDates)) : null;
+
+    const autoProjectedStartStr = calculatedStart && !isNaN(calculatedStart.getTime())
+      ? calculatedStart.toISOString().split('T')[0]
+      : (proj.projectedStart || '');
+    const autoProjectedEndStr = calculatedEnd && !isNaN(calculatedEnd.getTime())
+      ? calculatedEnd.toISOString().split('T')[0]
+      : (proj.projectedEnd || '');
+
     let projDynStart = projTaskDates.length > 0
       ? new Date(Math.min(...projTaskDates.map((d: any) => d.start.getTime())))
       : (proj.projectedStart ? new Date(proj.projectedStart) : null);
@@ -1432,11 +1445,11 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                 <Activity className="w-4 h-4 text-blue-300 shrink-0" />
                 <span className="w-32 shrink-0">Projected Start:</span>
                 {readOnly ? (
-                  <strong className="text-white">{proj.projectedStart || 'Not set'}</strong>
+                  <strong className="text-white">{(proj.projectedStart || autoProjectedStartStr) || 'Not set'}</strong>
                 ) : (
                   <input
                     type="date"
-                    value={proj.projectedStart || ''}
+                    value={proj.projectedStart || autoProjectedStartStr}
                     onChange={e => handleProjectedStartChange(e.target.value)}
                     className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer [color-scheme:dark]"
                     title="Set Projected Start Date"
@@ -1449,11 +1462,11 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                 <Activity className="w-4 h-4 text-blue-300 shrink-0" />
                 <span className="w-32 shrink-0">Projected End:</span>
                 {readOnly ? (
-                  <strong className="text-white">{proj.projectedEnd || 'Not set'}</strong>
+                  <strong className="text-white">{(proj.projectedEnd || autoProjectedEndStr) || 'Not set'}</strong>
                 ) : (
                   <input
                     type="date"
-                    value={proj.projectedEnd || ''}
+                    value={proj.projectedEnd || autoProjectedEndStr}
                     onChange={e => handleProjectedEndChange(e.target.value)}
                     className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer [color-scheme:dark]"
                     title="Set Projected End Date"
@@ -2271,9 +2284,9 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                         )}
                                         <div className="flex items-center gap-2">
                                           <Clock className="w-3.5 h-3.5 text-blue-400" />
-                                          <span>Dynamic Start: <strong className="text-[#1e3a5f]">{fmtDate(allTaskDates[task.id].start)}</strong></span>
+                                          <span>Dynamic Start: <strong className="text-[#1e3a5f]">{isProjectStarted ? fmtDate(allTaskDates[task.id].start) : '--/--/--'}</strong></span>
                                           <span className="text-gray-300">•</span>
-                                          <span>Dynamic End: <strong className="text-[#1e3a5f]">{fmtDate(allTaskDates[task.id].end)}</strong></span>
+                                          <span>Dynamic End: <strong className="text-[#1e3a5f]">{isProjectStarted ? fmtDate(allTaskDates[task.id].end) : '--/--/--'}</strong></span>
                                         </div>
                                       </div>
                                     )}
@@ -2577,9 +2590,9 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                                       </div>
                                                       <div className="flex items-center gap-2">
                                                         <Clock className="w-3.5 h-3.5 text-blue-400" />
-                                                        <span>Dynamic Start: <strong className="text-[#1e3a5f]">{fmtDate(stStart)}</strong></span>
+                                                        <span>Dynamic Start: <strong className="text-[#1e3a5f]">{isProjectStarted ? fmtDate(stStart) : '--/--/--'}</strong></span>
                                                         <span className="text-gray-300">•</span>
-                                                        <span>Dynamic End: <strong className="text-[#1e3a5f]">{fmtDate(stEnd)}</strong></span>
+                                                        <span>Dynamic End: <strong className="text-[#1e3a5f]">{isProjectStarted ? fmtDate(stEnd) : '--/--/--'}</strong></span>
                                                       </div>
                                                     </div>
                                                   </div>
