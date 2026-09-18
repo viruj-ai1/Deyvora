@@ -13,20 +13,6 @@ export const LoginScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotHelp, setShowForgotHelp] = useState(false);
 
-  const DEMO_USERS = [
-    { label: 'MD', username: 'u1', password: 'MD@Virujgroup', role: 'Managing Director' },
-    { label: 'VP R&D', username: 'u2', password: 'VP@Virujgroup', role: 'Vice President' },
-    { label: 'PM A', username: 'u3', password: 'PMA@Virujgroup', role: 'Project Manager A' },
-    { label: 'PM B', username: 'u4', password: 'PMB@Virujgroup', role: 'Project Manager B' },
-    { label: 'ARD Head', username: 'u5', password: 'ARD@Virujgroup', role: 'ARD Head' },
-    { label: 'CRD Head', username: 'u6', password: 'CRD@Virujgroup', role: 'CRD Head' },
-    { label: 'DQA Head', username: 'u7', password: 'DQA@Virujgroup', role: 'DQA Head' },
-    { label: 'SCM Head', username: 'u8', password: 'SCM@Virujgroup', role: 'SCM Head' },
-    { label: 'TTR Head', username: 'u9', password: 'TTR@Virujgroup', role: 'TTR Head' },
-    { label: 'Sr Chemist', username: 'u10', password: 'CHM@Virujgroup', role: 'Senior Chemist (ARD)' },
-    { label: 'Client', username: 'u11', password: 'Client@Virujgroup', role: 'External Client' },
-  ];
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

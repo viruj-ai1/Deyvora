@@ -11,35 +11,6 @@ def render_login_screen(verify_login_fn, get_users_fn):
         with st.container():
             st.markdown("### 🔐 User Login")
             
-            # Quick Login Demo Buttons
-            st.markdown("##### Quick Demo Credentials:")
-            qcol1, qcol2, qcol3 = st.columns(3)
-            
-            with qcol1:
-                if st.button("👑 Managing Director", key="btn_md", use_container_width=True):
-                    st.session_state["login_user"] = "u1"
-                    st.session_state["login_pass"] = "MD@Virujgroup"
-                if st.button("🧪 Senior Chemist", key="btn_chm", use_container_width=True):
-                    st.session_state["login_user"] = "u10"
-                    st.session_state["login_pass"] = "CHM@Virujgroup"
-
-            with qcol2:
-                if st.button("🔬 VP R&D", key="btn_vp", use_container_width=True):
-                    st.session_state["login_user"] = "u2"
-                    st.session_state["login_pass"] = "VP@Virujgroup"
-                if st.button("🏢 External Client", key="btn_client", use_container_width=True):
-                    st.session_state["login_user"] = "u11"
-                    st.session_state["login_pass"] = "Client@Virujgroup"
-
-            with qcol3:
-                if st.button("📋 Project Manager A", key="btn_pma", use_container_width=True):
-                    st.session_state["login_user"] = "u3"
-                    st.session_state["login_pass"] = "PMA@Virujgroup"
-                if st.button("⚙️ SCM Head", key="btn_scm", use_container_width=True):
-                    st.session_state["login_user"] = "u8"
-                    st.session_state["login_pass"] = "SCM@Virujgroup"
-
-            st.markdown("---")
 
             user_input = st.text_input(
                 "User ID or Full Name", 
