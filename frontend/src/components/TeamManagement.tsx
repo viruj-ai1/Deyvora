@@ -306,10 +306,10 @@ export const TeamManagement = () => {
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
               <h3 className="font-bold text-gray-900 flex items-center gap-2.5 text-lg">
-                <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-                  <UserPlus className="w-5 h-5" />
+                <div className={`p-2 rounded-xl ${provisionMode === 'new' ? 'bg-blue-50 text-blue-600' : 'bg-emerald-50 text-emerald-600'}`}>
+                  {provisionMode === 'new' ? <UserPlus className="w-5 h-5" /> : <UserCheck className="w-5 h-5" />}
                 </div>
-                Provision Member
+                {provisionMode === 'new' ? 'Create New Member' : 'Add Existing Member'}
               </h3>
               <button
                 type="button"
@@ -321,40 +321,6 @@ export const TeamManagement = () => {
               >
                 <X className="w-5 h-5" />
               </button>
-            </div>
-
-            {/* Mode Switcher Tabs inside Modal */}
-            <div className="px-6 pt-5 pb-0">
-              <div className="flex p-1 bg-gray-100/80 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProvisionMode('new');
-                    setNewCredential(null);
-                  }}
-                  className={`flex-1 text-sm font-bold py-2.5 rounded-lg transition-all ${
-                    provisionMode === 'new'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Create New
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProvisionMode('existing');
-                    setNewCredential(null);
-                  }}
-                  className={`flex-1 text-sm font-bold py-2.5 rounded-lg transition-all ${
-                    provisionMode === 'existing'
-                      ? 'bg-white text-blue-600 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  Add Existing
-                </button>
-              </div>
             </div>
 
             {/* Form Body */}

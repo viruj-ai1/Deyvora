@@ -22,9 +22,6 @@ export const TASK_STATUS: Record<string, string> = {
 
 export const EXTRA_TABS: Record<string, any[]> = {
   [ROLES.MANAGEMENT]: [
-    { id: 'strategic-planning', label: 'Strategic Planning', icon: Target },
-    { id: 'financials', label: 'Financials', icon: PieChart },
-    { id: 'reports', label: 'Global Reports', icon: BarChart },
     { id: 'pm-projects', label: 'Execution Tracker', icon: FolderKanban },
     { id: 'ai-insights', label: 'AI Insights', icon: Sparkles }
   ],
