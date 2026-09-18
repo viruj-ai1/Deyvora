@@ -164,27 +164,6 @@ export const LoginScreen = () => {
               </button>
             </div>
 
-            {/* Demo Quick Access */}
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 text-center">Demo Quick Access</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {DEMO_USERS.map(u => (
-                  <button
-                    key={u.username}
-                    onClick={() => {
-                      setUsername(u.username);
-                      setPassword(u.password);
-                    }}
-                    type="button"
-                    className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold rounded-md border border-blue-200 transition-colors"
-                    title={u.role}
-                  >
-                    {u.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Forgot Password Help Panel */}
             {showForgotHelp && (
               <div className="mt-4 relative rounded-xl border border-amber-200 bg-amber-50 p-4 fade-in">
