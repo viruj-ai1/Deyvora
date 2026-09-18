@@ -1072,12 +1072,14 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
       projDynEnd = new Date(projDynStart.getTime());
     }
 
-    const projDynStartStr = projDynStart && !isNaN(projDynStart.getTime())
+    const isProjectStarted = proj.status && proj.status !== 'Planning' && proj.status !== 'Dismissed';
+
+    const projDynStartStr = isProjectStarted && projDynStart && !isNaN(projDynStart.getTime())
       ? projDynStart.toISOString().split('T')[0]
-      : 'N/A';
-    const projDynEndStr = projDynEnd && !isNaN(projDynEnd.getTime())
+      : '--/--/--';
+    const projDynEndStr = isProjectStarted && projDynEnd && !isNaN(projDynEnd.getTime())
       ? projDynEnd.toISOString().split('T')[0]
-      : 'N/A';
+      : '--/--/--';
 
     const handleProjectedStartChange = (newStartStr: string) => {
       if (!newStartStr) return;

@@ -7,7 +7,7 @@ import { computeCriticalChain } from '../utils/criticalChain';
 export const AIInsights = () => {
   const { tasks, projects, users, currentUser } = useContext(AppContext);
 
-  const isOverall = [ROLES.MANAGEMENT, ROLES.RD_HEAD, ROLES.PM].includes(currentUser.role);
+  const isOverall = [ROLES.MANAGEMENT, ROLES.RD_HEAD, ROLES.SCM].includes(currentUser.role);
   
   const insightsData = useMemo(() => {
     let relevantTasks: any[];
@@ -17,21 +17,33 @@ export const AIInsights = () => {
     if (isOverall) {
       relevantTasks = tasks;
       relevantProjects = projects;
+      departmentName = 'Overall Organization';
     } else {
-      departmentName = currentUser.department || 'Your Department';
-      const deptUsers = users.filter((u: any) => u.department === currentUser.department);
-      const deptUserIds = deptUsers.map((u: any) => u.id);
+      departmentName = currentUser.department || currentUser.role;
 
-      relevantTasks = tasks.filter((t: any) => {
-        if (!t.assignedTo) return false;
-        if (Array.isArray(t.assignedTo)) {
-          return t.assignedTo.some((id: string) => deptUserIds.includes(id));
-        }
-        return deptUserIds.includes(t.assignedTo);
+      // Filter projects where currentUser is directly involved
+      relevantProjects = projects.filter((p: any) => {
+        if (p.pmId === currentUser.id) return true;
+        if (p.clientId === currentUser.id) return true;
+        if (Array.isArray(p.team) && p.team.includes(currentUser.id)) return true;
+        const hasTask = tasks.some((t: any) =>
+          t.projectId === p.id && (
+            (Array.isArray(t.assignedTo) ? t.assignedTo.includes(currentUser.id) : t.assignedTo === currentUser.id) ||
+            t.delegatedTo === currentUser.id
+          )
+        );
+        return hasTask;
       });
 
-      const projectIds = new Set(relevantTasks.map((t: any) => t.projectId));
-      relevantProjects = projects.filter((p: any) => projectIds.has(p.id));
+      const involvedProjectIds = new Set(relevantProjects.map((p: any) => p.id));
+
+      relevantTasks = tasks.filter((t: any) => {
+        if (involvedProjectIds.has(t.projectId)) return true;
+        const isAssigned = Array.isArray(t.assignedTo)
+          ? t.assignedTo.includes(currentUser.id)
+          : t.assignedTo === currentUser.id;
+        return isAssigned || t.delegatedTo === currentUser.id;
+      });
     }
 
     const totalTasks = relevantTasks.length;

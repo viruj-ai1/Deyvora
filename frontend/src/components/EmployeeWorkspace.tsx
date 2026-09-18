@@ -1523,21 +1523,29 @@ export const TaskInboxView = () => {
             const isInProgress = task.status === 'In Progress';
             const isApproved = task.status === TASK_STATUS.PENDING_START;
 
+            const isProjNotStarted = !proj || (proj.status !== 'Active' && proj.status !== 'Completed');
+            const externalPreds = getAllExternalPredecessors(task);
+            const hasIncompletePredecessors = externalPreds.length > 0 && externalPreds.some((predId: string) => {
+              return !isPredecessorCompleted(predId, tasks).completed;
+            });
+
             const isUnblocked = (() => {
               if (isCompleted) return true;
+              if (isProjNotStarted) return false;
               if (isApproved || isInProgress) {
-                const externalPreds = getAllExternalPredecessors(task);
-                const hasIncompletePredecessors = externalPreds.length > 0 && externalPreds.some((predId: string) => {
-                  return !isPredecessorCompleted(predId, tasks).completed;
-                });
-                const isProjNotStarted = (!proj || proj.status !== 'Active');
-                return !hasIncompletePredecessors && !isProjNotStarted;
+                return !hasIncompletePredecessors;
               }
               return false;
             })();
 
+            const isStartingTask = externalPreds.length === 0;
+
             return (
-              <Card key={task.id} className={`p-0 overflow-hidden border rounded-xl shadow-sm transition-all ${isUnblocked ? 'bg-white border-gray-200 hover:shadow-md' : 'bg-gray-100 border-dashed border-gray-300 opacity-40 grayscale pointer-events-none'}`}>
+              <Card key={task.id} className={`p-0 overflow-hidden border rounded-xl shadow-sm transition-all ${
+                isUnblocked ? 'bg-white border-gray-200 hover:shadow-md' :
+                isProjNotStarted ? 'bg-blue-50/30 border-blue-100' :
+                'bg-gray-100 border-dashed border-gray-300 opacity-60 pointer-events-none'
+              }`}>
                 <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Task Info section */}
                   <div className="flex-1 min-w-0">
@@ -1545,11 +1553,12 @@ export const TaskInboxView = () => {
                       <h4 className="font-extrabold text-gray-900 text-lg truncate">{task.title}</h4>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shrink-0 ${
                         isCompleted ? 'bg-green-100 text-green-700' :
-                        isInProgress ? 'bg-blue-100 text-blue-700' :
+                        (isInProgress || (isUnblocked && isStartingTask)) ? 'bg-blue-100 text-blue-700' :
+                        isProjNotStarted ? 'bg-blue-50 text-blue-600 border border-blue-200' :
                         'bg-gray-100 text-gray-500'
                       }`}>
                         {isCompleted ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Activity className="w-2.5 h-2.5" />}
-                        {task.status}
+                        {isCompleted ? 'Completed' : (isInProgress || (isUnblocked && isStartingTask)) ? 'In progress' : isProjNotStarted ? 'Pending Start' : task.status}
                       </span>
                     </div>
 
@@ -1557,10 +1566,10 @@ export const TaskInboxView = () => {
                       <p className="text-sm text-gray-500 line-clamp-2 mb-3 bg-gray-50 p-2 rounded-lg border border-gray-100">{task.specs}</p>
                     )}
 
-                    {getAllExternalPredecessors(task).length > 0 && (
+                    {externalPreds.length > 0 && (
                       <div className="text-[11px] text-gray-500 flex flex-wrap items-center gap-2 mt-1">
                         <span className="font-bold uppercase tracking-wider text-gray-400">Predecessors:</span>
-                        {getAllExternalPredecessors(task).map((predId: string) => {
+                        {externalPreds.map((predId: string) => {
                           const isComp = isPredecessorCompleted(predId, tasks).completed;
                           const title = getPredecessorTitle(predId, tasks);
                           return (
@@ -1606,8 +1615,8 @@ export const TaskInboxView = () => {
                     {isUnblocked ? (
                       <div className="flex items-center justify-between text-xs font-bold text-[#1e3a5f]">
                         <span className="flex items-center gap-1">
-                          {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5" />}
-                          {isCompleted ? 'Task Finished' : 'Ready for Work'}
+                          {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Activity className="w-3.5 h-3.5 text-blue-600" />}
+                          {isCompleted ? 'Task Finished' : (isInProgress || isStartingTask ? 'In progress' : 'Ready for Work')}
                         </span>
                         {!isCompleted && (
                           <button
@@ -1617,6 +1626,11 @@ export const TaskInboxView = () => {
                             Open <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         )}
+                      </div>
+                    ) : isProjNotStarted ? (
+                      <div className="flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 p-2.5 rounded-lg border border-blue-200/60 shadow-sm">
+                        <Clock className="w-4 h-4 shrink-0 text-blue-500" />
+                        <span className="leading-tight">The project has not yet started</span>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 text-xs font-bold text-amber-700 bg-amber-50 p-2.5 rounded-lg border border-amber-200/60 shadow-sm">

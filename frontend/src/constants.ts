@@ -26,6 +26,7 @@ export const EXTRA_TABS: Record<string, any[]> = {
     { id: 'ai-insights', label: 'AI Insights', icon: Sparkles }
   ],
   [ROLES.RD_HEAD]: [
+    { id: 'pm-projects', label: 'Execution Tracker', icon: FolderKanban },
     { id: 'ai-insights', label: 'AI Insights', icon: Sparkles }
   ],
   [ROLES.SCM]: [
