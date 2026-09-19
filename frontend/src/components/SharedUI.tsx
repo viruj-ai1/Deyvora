@@ -186,3 +186,243 @@ export const TaskAssigneeControl = ({
   );
 };
 
+export const ActionPointsManager = ({
+  task,
+  proj,
+  users = [],
+  updateTask,
+  readOnly = false,
+  className = ""
+}: {
+  task: any;
+  proj?: any;
+  users?: any[];
+  updateTask: (taskId: string, updates: any) => void;
+  readOnly?: boolean;
+  className?: string;
+}) => {
+  // Calculate strict project team members (EXCLUDE Managing Director)
+  const projectTeamMembers = React.useMemo(() => {
+    const teamMap = new Map<string, any>();
+
+    // 1. PM assigned to project
+    if (proj?.pmId) {
+      const pm = users.find((u: any) => String(u.id) === String(proj.pmId));
+      if (pm && pm.role !== 'Managing Director' && pm.role !== ROLES.MANAGEMENT) {
+        teamMap.set(String(pm.id), pm);
+      }
+    }
+
+    // 2. Department Heads assigned to this task or project tasks
+    const deptHeadIds = Array.isArray(task?.assignedTo) ? task.assignedTo : (task?.assignedTo ? [task.assignedTo] : []);
+    deptHeadIds.forEach((dhId: any) => {
+      const dh = users.find((u: any) => String(u.id) === String(dhId));
+      if (dh && dh.role !== 'Managing Director' && dh.role !== ROLES.MANAGEMENT) {
+        teamMap.set(String(dh.id), dh);
+      }
+    });
+
+    // 3. Direct report employees under assigned Department Heads
+    deptHeadIds.forEach((dhId: any) => {
+      users.filter((u: any) => (u.managerId === dhId || u.manager_id === dhId) && u.role !== 'Managing Director' && u.role !== ROLES.MANAGEMENT).forEach((u: any) => {
+        teamMap.set(String(u.id), u);
+      });
+    });
+
+    // 4. Project explicitly assigned team members
+    if (proj?.team_members && Array.isArray(proj.team_members)) {
+      proj.team_members.forEach((tm: any) => {
+        const u = typeof tm === 'object' ? tm : users.find((x: any) => String(x.id) === String(tm));
+        if (u && u.role !== 'Managing Director' && u.role !== ROLES.MANAGEMENT) {
+          teamMap.set(String(u.id || u.name), u);
+        }
+      });
+    }
+
+    // Fallback if list is empty: all Analysts/Chemists & PMs (excluding MD & management)
+    if (teamMap.size === 0) {
+      users.filter((u: any) => u.role !== 'Managing Director' && u.role !== ROLES.MANAGEMENT).forEach((u: any) => {
+        teamMap.set(String(u.id), u);
+      });
+    }
+
+    return Array.from(teamMap.values());
+  }, [proj, task, users]);
+
+  const actionPoints = task?.actionPoints || task?.action_points || [];
+
+  const handleAddActionPoint = () => {
+    const newAp = {
+      id: `ap-${Date.now()}`,
+      text: '',
+      doneBy: '',
+      doneByName: '',
+      remarks: '',
+      completed: false
+    };
+    const updated = [...actionPoints, newAp];
+    updateTask(task.id, { actionPoints: updated });
+  };
+
+  const handleUpdateActionPoint = (apId: any, field: string, value: any) => {
+    const updated = actionPoints.map((ap: any) => {
+      if (String(ap.id) === String(apId)) {
+        if (field === 'doneBy') {
+          if (value === '__custom__') {
+            return { ...ap, isCustomDoneBy: true };
+          }
+          const found = users.find((u: any) => String(u.id) === String(value));
+          return {
+            ...ap,
+            doneBy: value,
+            doneByName: found ? found.name : value,
+            isCustomDoneBy: false
+          };
+        }
+        return { ...ap, [field]: value };
+      }
+      return ap;
+    });
+    updateTask(task.id, { actionPoints: updated });
+  };
+
+  const handleDeleteActionPoint = (apId: any) => {
+    const updated = actionPoints.filter((ap: any) => String(ap.id) !== String(apId));
+    updateTask(task.id, { actionPoints: updated });
+  };
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+        <h4 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
+          <span>Action Points</span>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+            {actionPoints.filter((ap: any) => ap.completed || ap.done).length}/{actionPoints.length} Done
+          </span>
+        </h4>
+        {!readOnly && (
+          <button
+            type="button"
+            onClick={handleAddActionPoint}
+            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200 shadow-sm"
+          >
+            + Add Action Point
+          </button>
+        )}
+      </div>
+
+      {actionPoints.length === 0 ? (
+        <div className="text-xs text-gray-400 italic py-2 text-center bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+          No action points added yet. {!readOnly && 'Click "+ Add Action Point" above.'}
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {actionPoints.map((ap: any, idx: number) => {
+            const isCompleted = ap.completed || ap.done;
+            const isCustomDoneBy = ap.isCustomDoneBy || (ap.doneBy && !projectTeamMembers.some((u: any) => String(u.id) === String(ap.doneBy)));
+
+            return (
+              <div
+                key={ap.id || idx}
+                className={`p-3 rounded-xl border transition-all space-y-2 ${
+                  isCompleted ? 'bg-emerald-50/60 border-emerald-200' : 'bg-white border-gray-200 shadow-sm'
+                }`}
+              >
+                {/* Row 1: Checkbox + Description Input */}
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(isCompleted)}
+                    disabled={readOnly}
+                    onChange={(e) => handleUpdateActionPoint(ap.id, 'completed', e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-[#1e3a5f]"
+                  />
+                  <input
+                    type="text"
+                    readOnly={readOnly}
+                    placeholder={`Action Point ${idx + 1}...`}
+                    value={ap.text || ap.title || ap.description || ''}
+                    onChange={(e) => handleUpdateActionPoint(ap.id, 'text', e.target.value)}
+                    className={`flex-1 text-xs font-bold bg-transparent outline-none border-b border-transparent focus:border-blue-400 transition-all ${
+                      isCompleted ? 'line-through text-gray-500' : 'text-gray-800'
+                    }`}
+                  />
+                  {!readOnly && (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteActionPoint(ap.id)}
+                      className="text-gray-400 hover:text-red-500 text-xs px-1"
+                      title="Delete action point"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                {/* Row 2: Done by - [Select/Type] & Remarks - [Input/Type] */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-gray-100 text-xs">
+                  {/* Done by Field */}
+                  <div className="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                    <span className="font-extrabold text-gray-500 text-[11px] whitespace-nowrap">Done by:</span>
+                    {readOnly ? (
+                      <span className="font-bold text-gray-800 truncate">{ap.doneByName || ap.doneBy || 'Unassigned'}</span>
+                    ) : isCustomDoneBy ? (
+                      <div className="flex items-center gap-1 flex-1 min-w-0">
+                        <input
+                          type="text"
+                          placeholder="Type name..."
+                          value={ap.doneByName || ap.doneBy || ''}
+                          onChange={(e) => {
+                            handleUpdateActionPoint(ap.id, 'doneByName', e.target.value);
+                            handleUpdateActionPoint(ap.id, 'doneBy', e.target.value);
+                          }}
+                          className="w-full text-xs font-bold px-1.5 py-0.5 rounded border border-blue-300 bg-white text-gray-900 outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateActionPoint(ap.id, 'isCustomDoneBy', false)}
+                          className="text-[10px] text-gray-400 hover:text-gray-600 px-1"
+                          title="Switch to dropdown"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <select
+                        value={ap.doneBy || ''}
+                        onChange={(e) => handleUpdateActionPoint(ap.id, 'doneBy', e.target.value)}
+                        className="flex-1 text-xs font-bold bg-white border border-gray-300 rounded px-1.5 py-0.5 text-gray-800 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer"
+                      >
+                        <option value="">Select team member...</option>
+                        {projectTeamMembers.map((m: any) => (
+                          <option key={m.id || m.name} value={m.id || m.name}>
+                            {m.name} ({m.role || 'Team Member'})
+                          </option>
+                        ))}
+                        <option value="__custom__">✍️ Type custom name...</option>
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Remarks Field */}
+                  <div className="flex items-center gap-1.5 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                    <span className="font-extrabold text-gray-500 text-[11px] whitespace-nowrap">Remarks:</span>
+                    <input
+                      type="text"
+                      readOnly={readOnly}
+                      placeholder="Add remarks/notes..."
+                      value={ap.remarks || ''}
+                      onChange={(e) => handleUpdateActionPoint(ap.id, 'remarks', e.target.value)}
+                      className="flex-1 text-xs font-semibold bg-white border border-gray-300 rounded px-1.5 py-0.5 text-gray-800 outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+

@@ -319,11 +319,9 @@ export const RDProjectsView = () => {
                         </p>
                         <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                           <UserSquare2 className="w-4 h-4 text-gray-400" />
-                          <span>Dept Head: <strong className="text-gray-900">{assigneeNames}</strong></span>
+                          <span>Assigned to: <strong className="text-gray-900">{assigneeNames}</strong></span>
                           <span className="text-gray-300">•</span>
                           <span className="text-xs text-gray-500">{assigneeRoles}</span>
-                          <span className="text-gray-300">•</span>
-                          <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                         </div>
                       </div>
 

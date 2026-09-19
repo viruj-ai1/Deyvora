@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import { TASK_STATUS, ROLES, computeDynamicBufferPool, addWorkingDays, isRestDay, getWorkingDaysElapsed } from '../constants';
-import { Card, StatCard, TaskAssigneeControl } from './SharedUI';
+import { Card, StatCard, ActionPointsManager } from './SharedUI';
 
 const PROJECT_STATUS_CONFIG: Record<string, { color: string; bg: string; border: string; icon: any }> = {
   Planning: { color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock },
@@ -1318,11 +1318,11 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                 <Activity className="w-4 h-4 text-blue-300 shrink-0" />
                 <span className="w-32 shrink-0">Projected Start:</span>
                 {readOnly ? (
-                  <strong className="text-white">{(proj.projectedStart || autoProjectedStartStr) || 'Not set'}</strong>
+                  <strong className="text-white">{(autoProjectedStartStr || proj.projectedStart) || 'Not set'}</strong>
                 ) : (
                   <input
                     type="date"
-                    value={proj.projectedStart || autoProjectedStartStr}
+                    value={autoProjectedStartStr || proj.projectedStart || ''}
                     onChange={e => handleProjectedStartChange(e.target.value)}
                     className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer [color-scheme:dark]"
                     title="Set Projected Start Date"
@@ -2144,8 +2144,6 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                           ? assignees.map((a: any) => a.role === ROLES.DEPT_HEAD ? 'Department' : a.role).join(', ')
                                           : 'Unknown'}
                                       </span>
-                                      <span className="text-gray-300">•</span>
-                                      <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                                     </div>
                                     {allTaskDates[task.id] && (
                                       <div className="flex flex-col gap-1 text-xs text-gray-500">
@@ -2269,6 +2267,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                       );
                                     })()}
                                   </div>
+
+                                  <ActionPointsManager task={task} proj={proj} users={users} updateTask={updateTask} readOnly={readOnly} className="mt-4 pt-3 border-t border-gray-100" />
 
 
                                   {/* ── Read-only Daily Log (PM view) for tasks with NO subtasks ── */}
@@ -2454,8 +2454,6 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                                       <strong className="text-gray-700">
                                                         {assignees.length > 0 ? assignees.map((a: any) => a.name).join(', ') : 'Unknown'}
                                                       </strong>
-                                                      <span className="text-gray-300">•</span>
-                                                      <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                                                     </div>
                                                     <div className="flex flex-col gap-1 text-xs text-gray-500">
                                                       <div className="flex items-center gap-2">
