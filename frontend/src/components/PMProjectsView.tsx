@@ -17,9 +17,41 @@ const PROJECT_STATUS_CONFIG: Record<string, { color: string; bg: string; border:
   Suspended: { color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200', icon: PauseCircle },
   Dismissed: { color: 'text-red-700', bg: 'bg-red-50', border: 'border-red-200', icon: XCircle },
 };
-const fmtDate = (d: Date) => {
-  if (!d || isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+export const parseLocalDate = (dateStr: string | Date | number | null | undefined): Date | null => {
+  if (!dateStr) return null;
+  if (dateStr instanceof Date) return isNaN(dateStr.getTime()) ? null : dateStr;
+  if (typeof dateStr === 'string') {
+    const cleanStr = dateStr.trim();
+    if (cleanStr.includes('-')) {
+      const parts = cleanStr.split('T')[0].split('-');
+      if (parts.length === 3) {
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        const d = new Date(year, month, day, 0, 0, 0, 0);
+        return isNaN(d.getTime()) ? null : d;
+      }
+    }
+  }
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+export const toLocalYYYYMMDD = (d: Date | string | number | null | undefined): string => {
+  if (!d) return '';
+  const dateObj = typeof d === 'object' && d instanceof Date ? d : parseLocalDate(d);
+  if (!dateObj || isNaN(dateObj.getTime())) return '';
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const fmtDate = (d: Date | string) => {
+  if (!d) return '';
+  const dateObj = typeof d === 'string' ? parseLocalDate(d) : d;
+  if (!dateObj || isNaN(dateObj.getTime())) return '';
+  return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
 };
 
 const computeTaskProgress = (task: any) => {
@@ -682,18 +714,12 @@ export const useAllTaskDates = (tasks: any[], projects: any[]) => {
     const getProjectStart = (projectId: string) => {
       const p = projects.find((p: any) => p.id === projectId);
       if (p?.projectedStart) {
-        const d = new Date(p.projectedStart);
-        if (!isNaN(d.getTime())) {
-          d.setHours(0, 0, 0, 0);
-          return d;
-        }
+        const d = parseLocalDate(p.projectedStart);
+        if (d) return d;
       }
       if (p?.createdAt) {
-        const d = new Date(p.createdAt);
-        if (!isNaN(d.getTime())) {
-          d.setHours(0, 0, 0, 0);
-          return d;
-        }
+        const d = parseLocalDate(p.createdAt);
+        if (d) return d;
       }
       return new Date(today);
     };
@@ -724,7 +750,7 @@ export const useAllTaskDates = (tasks: any[], projects: any[]) => {
       // 2. Calculate Dynamic Dates
       let start: Date;
       if (task.startedAt) {
-        start = new Date(task.startedAt);
+        start = parseLocalDate(task.startedAt) || today;
       } else if (task.predecessors?.length) {
         const predEnds = task.predecessors.map((pid: string) => {
           const pd = resolveTask(pid, new Set(visited));
@@ -943,18 +969,18 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
     const calculatedEnd = plannedEndDates.length > 0 ? new Date(Math.max(...plannedEndDates)) : null;
 
     const autoProjectedStartStr = calculatedStart && !isNaN(calculatedStart.getTime())
-      ? calculatedStart.toISOString().split('T')[0]
-      : (proj.projectedStart || '');
+      ? toLocalYYYYMMDD(calculatedStart)
+      : (proj.projectedStart ? toLocalYYYYMMDD(proj.projectedStart) : '');
     const autoProjectedEndStr = calculatedEnd && !isNaN(calculatedEnd.getTime())
-      ? calculatedEnd.toISOString().split('T')[0]
-      : (proj.projectedEnd || '');
+      ? toLocalYYYYMMDD(calculatedEnd)
+      : (proj.projectedEnd ? toLocalYYYYMMDD(proj.projectedEnd) : '');
 
     let projDynStart = projTaskDates.length > 0
       ? new Date(Math.min(...projTaskDates.map((d: any) => d.start.getTime())))
-      : (proj.projectedStart ? new Date(proj.projectedStart) : null);
+      : (proj.projectedStart ? parseLocalDate(proj.projectedStart) : null);
     let projDynEnd = projTaskDates.length > 0
       ? new Date(Math.max(...projTaskDates.map((d: any) => d.end.getTime())))
-      : (proj.projectedEnd ? new Date(proj.projectedEnd) : null);
+      : (proj.projectedEnd ? parseLocalDate(proj.projectedEnd) : null);
 
     // Enforce date range guard: Dynamic Start <= Dynamic End
     if (projDynStart && projDynEnd && projDynStart.getTime() > projDynEnd.getTime()) {
@@ -964,19 +990,19 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
     const isProjectStarted = proj.status && proj.status !== 'Planning' && proj.status !== 'Dismissed';
 
     const projDynStartStr = isProjectStarted && projDynStart && !isNaN(projDynStart.getTime())
-      ? projDynStart.toISOString().split('T')[0]
+      ? toLocalYYYYMMDD(projDynStart)
       : '--/--/--';
     const projDynEndStr = isProjectStarted && projDynEnd && !isNaN(projDynEnd.getTime())
-      ? projDynEnd.toISOString().split('T')[0]
+      ? toLocalYYYYMMDD(projDynEnd)
       : '--/--/--';
 
     const handleProjectedStartChange = (newStartStr: string) => {
       if (!newStartStr) return;
-      const newStart = new Date(newStartStr);
-      if (isNaN(newStart.getTime())) return;
+      const newStart = parseLocalDate(newStartStr);
+      if (!newStart || isNaN(newStart.getTime())) return;
 
-      const oldStartStr = proj.projectedStart || (proj.createdAt ? new Date(proj.createdAt).toISOString().split('T')[0] : newStartStr);
-      const oldStart = new Date(oldStartStr);
+      const oldStartStr = proj.projectedStart || (proj.createdAt ? toLocalYYYYMMDD(proj.createdAt) : newStartStr);
+      const oldStart = parseLocalDate(oldStartStr) || newStart;
 
       const diffMs = newStart.getTime() - oldStart.getTime();
       const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
@@ -985,12 +1011,12 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
 
       // Validation: If newStart > projectedEnd or end missing, auto-adjust projectedEnd to maintain duration
       if (proj.projectedEnd) {
-        const oldEnd = new Date(proj.projectedEnd);
+        const oldEnd = parseLocalDate(proj.projectedEnd) || oldStart;
         if (newStart.getTime() >= oldEnd.getTime()) {
           const currentDurationMs = oldEnd.getTime() - oldStart.getTime();
           const durationMs = currentDurationMs > 0 ? currentDurationMs : (24 * 60 * 60 * 1000);
           const autoEnd = new Date(newStart.getTime() + durationMs);
-          newEndStr = autoEnd.toISOString().split('T')[0];
+          newEndStr = toLocalYYYYMMDD(autoEnd);
         }
       }
 
@@ -1024,17 +1050,17 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
 
     const handleProjectedEndChange = (newEndStr: string) => {
       if (!newEndStr) return;
-      const newEnd = new Date(newEndStr);
-      if (isNaN(newEnd.getTime())) return;
+      const newEnd = parseLocalDate(newEndStr);
+      if (!newEnd || isNaN(newEnd.getTime())) return;
 
       let newStartStr = proj.projectedStart || '';
 
       // Validation: If newEnd <= projectedStart, auto-adjust projectedStart backward to preserve duration window
       if (proj.projectedStart) {
-        const oldStart = new Date(proj.projectedStart);
-        if (newEnd.getTime() <= oldStart.getTime()) {
+        const oldStart = parseLocalDate(proj.projectedStart);
+        if (oldStart && newEnd.getTime() <= oldStart.getTime()) {
           const autoStart = new Date(newEnd.getTime() - (24 * 60 * 60 * 1000));
-          newStartStr = autoStart.toISOString().split('T')[0];
+          newStartStr = toLocalYYYYMMDD(autoStart);
         }
       }
 
