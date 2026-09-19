@@ -2314,25 +2314,13 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                       <div className="mt-4 pt-3 border-t border-gray-100">
                                         <button
                                           onClick={() => setExpandedTaskLogId(isExpanded ? null : task.id.toString())}
-                                          className="w-full flex flex-col gap-2 hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors cursor-pointer text-left group"
+                                          className="w-full flex items-center justify-between hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors cursor-pointer text-left group"
                                         >
-                                          <div className="flex items-center justify-between w-full">
-                                            <div className="flex items-center gap-2">
-                                              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform group-hover:text-blue-500 ${isExpanded ? 'rotate-180' : ''}`} />
-                                              <span className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
-                                                <CheckSquare className="w-3.5 h-3.5 text-blue-400" /> Action Points & Daily Logs
-                                              </span>
-                                            </div>
-                                            <span className="text-[10px] font-bold bg-blue-50 text-[#1e3a5f] px-2 py-0.5 rounded-full border border-blue-100">
-                                              {doneDays} / {logCount} days ticked
+                                          <div className="flex items-center gap-2">
+                                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform group-hover:text-blue-500 ${isExpanded ? 'rotate-180' : ''}`} />
+                                            <span className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wider flex items-center gap-1.5">
+                                              <CheckSquare className="w-3.5 h-3.5 text-blue-400" /> Action Points & Daily Logs
                                             </span>
-                                          </div>
-                                          {/* mini progress bar */}
-                                          <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                                            <div
-                                              className="h-full rounded-full bg-blue-500 transition-all duration-500"
-                                              style={{ width: `${logCount > 0 ? Math.round((doneDays / logCount) * 100) : 0}%` }}
-                                            />
                                           </div>
                                         </button>
 
