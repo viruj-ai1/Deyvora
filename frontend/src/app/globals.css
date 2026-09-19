@@ -11,12 +11,29 @@ body {
   font-family: Inter, system-ui, sans-serif;
 }
 
-/* Guarantee jet black, 100% visible text for all inputs and placeholders */
-input, input:focus, input:active, textarea, textarea:focus, textarea:active, select {
+/* Guarantee visible text for standard inputs while supporting white text on dark inputs */
+input:not(.text-white):not(.dark-input), 
+input:not(.text-white):not(.dark-input):focus, 
+input:not(.text-white):not(.dark-input):active, 
+textarea:not(.text-white):not(.dark-input), 
+textarea:not(.text-white):not(.dark-input):focus, 
+textarea:not(.text-white):not(.dark-input):active, 
+select:not(.text-white):not(.dark-input) {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
   opacity: 1 !important;
   caret-color: #000000 !important;
+}
+
+.text-white, .dark-input, input.text-white, input.dark-input {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+}
+
+input.text-white::-webkit-calendar-picker-indicator,
+input.dark-input::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
 }
 
 input:-webkit-autofill,

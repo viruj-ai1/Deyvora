@@ -1350,7 +1350,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                     type="date"
                     value={autoProjectedStartStr || proj.projectedStart || ''}
                     onChange={e => handleProjectedStartChange(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer [color-scheme:dark]"
+                    style={{ colorScheme: 'dark' }}
+                    className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white dark-input text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
                     title="Set Projected Start Date"
                   />
                 )}
@@ -1367,7 +1368,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                     type="date"
                     value={proj.projectedEnd || autoProjectedEndStr}
                     onChange={e => handleProjectedEndChange(e.target.value)}
-                    className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer [color-scheme:dark]"
+                    style={{ colorScheme: 'dark' }}
+                    className="bg-white/10 border border-white/20 rounded-lg px-2.5 py-1 text-white dark-input text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
                     title="Set Projected End Date"
                   />
                 )}
