@@ -188,6 +188,7 @@ export const TaskAssigneeControl = ({
 
 export const ActionPointsManager = ({
   task,
+  subtaskId,
   proj,
   users = [],
   updateTask,
@@ -195,9 +196,10 @@ export const ActionPointsManager = ({
   className = ""
 }: {
   task: any;
+  subtaskId?: string | number;
   proj?: any;
   users?: any[];
-  updateTask: (taskId: string, updates: any) => void;
+  updateTask?: (taskId: string, updates: any) => void;
   readOnly?: boolean;
   className?: string;
 }) => {
@@ -249,9 +251,31 @@ export const ActionPointsManager = ({
     return Array.from(teamMap.values());
   }, [proj, task, users]);
 
-  const actionPoints = task?.actionPoints || task?.action_points || [];
+  const isSubtask = Boolean(subtaskId !== undefined && subtaskId !== null);
+  const currentSubtask = isSubtask ? (task?.subtasks || []).find((st: any) => String(st.id) === String(subtaskId)) : null;
+  const targetObj = isSubtask ? currentSubtask : task;
+  const actionPoints = targetObj?.actionPoints || targetObj?.action_points || [];
 
-  const handleAddActionPoint = () => {
+  const saveActionPoints = (newActionPoints: any[]) => {
+    if (!updateTask || !task?.id) return;
+    if (isSubtask) {
+      const updatedSubtasks = (task?.subtasks || []).map((st: any) => {
+        if (String(st.id) === String(subtaskId)) {
+          return { ...st, actionPoints: newActionPoints };
+        }
+        return st;
+      });
+      updateTask(task.id, { subtasks: updatedSubtasks });
+    } else {
+      updateTask(task.id, { actionPoints: newActionPoints });
+    }
+  };
+
+  const handleAddActionPoint = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     const newAp = {
       id: `ap-${Date.now()}`,
       text: '',
@@ -261,7 +285,7 @@ export const ActionPointsManager = ({
       completed: false
     };
     const updated = [...actionPoints, newAp];
-    updateTask(task.id, { actionPoints: updated });
+    saveActionPoints(updated);
   };
 
   const handleUpdateActionPoint = (apId: any, field: string, value: any) => {
@@ -283,12 +307,12 @@ export const ActionPointsManager = ({
       }
       return ap;
     });
-    updateTask(task.id, { actionPoints: updated });
+    saveActionPoints(updated);
   };
 
   const handleDeleteActionPoint = (apId: any) => {
     const updated = actionPoints.filter((ap: any) => String(ap.id) !== String(apId));
-    updateTask(task.id, { actionPoints: updated });
+    saveActionPoints(updated);
   };
 
   return (

@@ -2268,8 +2268,6 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                     })()}
                                   </div>
 
-                                  <ActionPointsManager task={task} proj={proj} users={users} updateTask={updateTask} readOnly={readOnly} className="mt-4 pt-3 border-t border-gray-100" />
-
 
                                   {/* ── Read-only Daily Log (PM view) for tasks with NO subtasks ── */}
                                   {(!task.subtasks || task.subtasks.length === 0) && (() => {
@@ -2312,24 +2310,7 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
 
                                         {isExpanded && (
                                           <div className="space-y-4 mt-3 pl-2 border-l-2 border-gray-100 ml-1">
-                                            {/* Action Points */}
-                                            <div>
-                                              <h4 className="font-bold text-xs text-gray-700 flex items-center gap-1.5 mb-2">
-                                                <CheckSquare className="w-3.5 h-3.5 text-blue-400" /> Action Points
-                                              </h4>
-                                              {!task.actionPoints || task.actionPoints.length === 0 ? (
-                                                <p className="text-[10px] text-gray-400 italic">No action points provided.</p>
-                                              ) : (
-                                                <div className="space-y-1.5">
-                                                  {task.actionPoints.map((ap: any, apIdx: number) => (
-                                                    <div key={apIdx} className="flex items-start gap-2 bg-white rounded p-2 border border-gray-200">
-                                                      <input type="checkbox" checked={ap.done || false} readOnly className="mt-0.5 w-3 h-3 text-[#3b82f6] rounded border-gray-300" />
-                                                      <span className={`text-[10px] ${ap.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{ap.text || 'Empty action point'}</span>
-                                                    </div>
-                                                  ))}
-                                                </div>
-                                              )}
-                                            </div>
+                                            <ActionPointsManager task={task} proj={proj} users={users} updateTask={updateTask} readOnly={readOnly} />
 
                                             {/* Daily Logs */}
                                             <div>
@@ -2635,23 +2616,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                               {isExpandedSubtask && (
                                                 <div className="mt-4 bg-gray-50/50 border border-gray-200 rounded-xl p-4 space-y-4 w-full">
                                                   {/* Action Points */}
-                                                  <div>
-                                                    <h4 className="font-bold text-xs text-gray-700 flex items-center gap-1.5 mb-2">
-                                                      <CheckSquare className="w-3.5 h-3.5 text-blue-400" /> Action Points
-                                                    </h4>
-                                                    {!st.actionPoints || st.actionPoints.length === 0 ? (
-                                                      <p className="text-[10px] text-gray-400 italic">No action points provided.</p>
-                                                    ) : (
-                                                      <div className="space-y-1.5">
-                                                        {st.actionPoints.map((ap: any, apIdx: number) => (
-                                                          <div key={apIdx} className="flex items-start gap-2 bg-white rounded p-2 border border-gray-200">
-                                                            <input type="checkbox" checked={ap.done || false} readOnly className="mt-0.5 w-3 h-3 text-[#3b82f6] rounded border-gray-300" />
-                                                            <span className={`text-[10px] ${ap.done ? 'line-through text-gray-400' : 'text-gray-700'}`}>{ap.text || 'Empty action point'}</span>
-                                                          </div>
-                                                        ))}
-                                                      </div>
-                                                    )}
-                                                  </div>
+                                                  <ActionPointsManager task={task} subtaskId={st.id} proj={proj} users={users} updateTask={updateTask} readOnly={readOnly} />
+
 
                                                   {/* Daily Log */}
                                                   <div>
