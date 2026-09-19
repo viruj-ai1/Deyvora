@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import { ROLES, TASK_STATUS } from '../constants';
-import { Card, StatCard } from './SharedUI';
+import { Card, StatCard, TaskAssigneeControl } from './SharedUI';
 
 const PROJECT_STATUSES = ['Planning', 'Active', 'Completed', 'Suspended', 'Dismissed'];
 
@@ -56,7 +56,7 @@ const STATUS_ACTIONS: Record<string, { label: string; icon: any; targetStatus: s
 };
 
 export const RDProjectsView = () => {
-  const { projects, tasks, addProject, updateProjectStatus, users, updateProject } = useContext(AppContext);
+  const { projects, tasks, addProject, updateProjectStatus, users, updateProject, currentUser, updateTask } = useContext(AppContext);
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
@@ -317,11 +317,13 @@ export const RDProjectsView = () => {
                         <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 leading-relaxed mb-3">
                           {task.specs}
                         </p>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
                           <UserSquare2 className="w-4 h-4 text-gray-400" />
-                          <span>Assigned to: <strong className="text-gray-900">{assigneeNames}</strong></span>
+                          <span>Dept Head: <strong className="text-gray-900">{assigneeNames}</strong></span>
                           <span className="text-gray-300">•</span>
                           <span className="text-xs text-gray-500">{assigneeRoles}</span>
+                          <span className="text-gray-300">•</span>
+                          <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                         </div>
                       </div>
 

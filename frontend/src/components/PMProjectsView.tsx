@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import { TASK_STATUS, ROLES, computeDynamicBufferPool, addWorkingDays, isRestDay, getWorkingDaysElapsed } from '../constants';
-import { Card, StatCard } from './SharedUI';
+import { Card, StatCard, TaskAssigneeControl } from './SharedUI';
 
 const PROJECT_STATUS_CONFIG: Record<string, { color: string; bg: string; border: string; icon: any }> = {
   Planning: { color: 'text-blue-700', bg: 'bg-blue-50', border: 'border-blue-200', icon: Clock },
@@ -2144,6 +2144,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                           ? assignees.map((a: any) => a.role === ROLES.DEPT_HEAD ? 'Department' : a.role).join(', ')
                                           : 'Unknown'}
                                       </span>
+                                      <span className="text-gray-300">•</span>
+                                      <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                                     </div>
                                     {allTaskDates[task.id] && (
                                       <div className="flex flex-col gap-1 text-xs text-gray-500">
@@ -2452,6 +2454,8 @@ export const PMProjectsView = ({ initialProjectId = null, onBack = null }: { ini
                                                       <strong className="text-gray-700">
                                                         {assignees.length > 0 ? assignees.map((a: any) => a.name).join(', ') : 'Unknown'}
                                                       </strong>
+                                                      <span className="text-gray-300">•</span>
+                                                      <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                                                     </div>
                                                     <div className="flex flex-col gap-1 text-xs text-gray-500">
                                                       <div className="flex items-center gap-2">

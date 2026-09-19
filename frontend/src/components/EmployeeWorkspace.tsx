@@ -2,10 +2,10 @@ import { useState, useContext, useEffect, useMemo } from 'react';
 import { ChevronRight, FileText, AlertCircle, Activity, Users, Play, CheckCircle2, Circle, Zap, AlertTriangle, FolderKanban, Inbox, CheckSquare, X, Clock, Briefcase, Calendar, Plus } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import { ROLES, TASK_STATUS, addWorkingDays, getWorkingDaysElapsed } from '../constants';
-import { Card, StatCard } from './SharedUI';
+import { Card, StatCard, TaskAssigneeControl } from './SharedUI';
 
 export const EmployeeWorkspace = () => {
-  const { currentUser, tasks, projects, users } = useContext(AppContext);
+  const { currentUser, tasks, projects, users, updateTask } = useContext(AppContext);
 
   const myTasks = tasks.filter((t: any) => 
     (Array.isArray(t.assignedTo) ? t.assignedTo.includes(currentUser.id) : t.assignedTo === currentUser.id) || 
@@ -102,7 +102,7 @@ export const EmployeeWorkspace = () => {
 };
 
 const TaskWorkDetail = ({ task, onBack }: { task: any, onBack: () => void }) => {
-  const { projects, updateTask, tasks } = useContext(AppContext);
+  const { projects, updateTask, tasks, users, currentUser } = useContext(AppContext);
   const proj = projects.find((p: any) => p.id === task.projectId);
 
   const [requestedExtensionDays, setRequestedExtensionDays] = useState(1);
@@ -420,11 +420,13 @@ const TaskWorkDetail = ({ task, onBack }: { task: any, onBack: () => void }) => 
           </div>
         )}
 
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-500">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500">
           <span>Project: <strong className="text-gray-900">{proj?.name}</strong></span>
           {startDate && <span>Start: <strong className="text-gray-900">{startDate.toLocaleDateString()}</strong></span>}
           {endDate && <span>End (Target): <strong className="text-gray-900">{endDate.toLocaleDateString()}</strong></span>}
           <span>Assigned: <strong className="text-gray-900">{daysAllocated} Days</strong></span>
+          <span className="text-gray-300">•</span>
+          <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
         </div>
         {task.specs && (
           <p className="text-gray-600 bg-white border border-gray-200 p-4 rounded-lg mt-3 relative z-10 shadow-sm">
@@ -1461,7 +1463,7 @@ export const ActiveWorkView = () => {
 };
 
 export const TaskInboxView = () => {
-  const { currentUser, tasks, projects } = useContext(AppContext);
+  const { currentUser, tasks, projects, users, updateTask } = useContext(AppContext);
   const [workingTaskId, setWorkingTaskId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
 
@@ -1549,7 +1551,7 @@ export const TaskInboxView = () => {
                 <div className="p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                   {/* Task Info section */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
                       <h4 className="font-extrabold text-gray-900 text-lg truncate">{task.title}</h4>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap shrink-0 ${
                         isCompleted ? 'bg-green-100 text-green-700' :
@@ -1560,6 +1562,7 @@ export const TaskInboxView = () => {
                         {isCompleted ? <CheckCircle2 className="w-2.5 h-2.5" /> : <Activity className="w-2.5 h-2.5" />}
                         {isCompleted ? 'Completed' : (isInProgress || (isUnblocked && isStartingTask)) ? 'In progress' : isProjNotStarted ? 'Pending Start' : task.status}
                       </span>
+                      <TaskAssigneeControl task={task} users={users} currentUser={currentUser} updateTask={updateTask} />
                     </div>
 
                     {task.specs && (

@@ -485,6 +485,8 @@ def update_task(task_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any
             import psycopg2.extras
             key_map = {
                 "assignedTo": "assigned_to",
+                "assignedEmployeeId": "assigned_employee_id",
+                "assignedEmployeeName": "assigned_employee_name",
                 "projectId": "project_id",
                 "durationValue": "duration_value",
                 "durationUnit": "duration_unit",

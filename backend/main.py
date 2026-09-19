@@ -31,6 +31,14 @@ def startup_event():
     except Exception as e:
         print("Migration projected_end:", e)
     try:
+        execute_query("ALTER TABLE public.tasks ADD COLUMN assigned_employee_id VARCHAR;", returning=False)
+    except Exception as e:
+        print("Migration assigned_employee_id:", e)
+    try:
+        execute_query("ALTER TABLE public.tasks ADD COLUMN assigned_employee_name VARCHAR;", returning=False)
+    except Exception as e:
+        print("Migration assigned_employee_name:", e)
+    try:
         execute_query("""
             DELETE FROM public.tasks 
             WHERE project_id IN (
@@ -98,6 +106,9 @@ class Task(BaseModel):
     assignedDays: Optional[int] = None
     bufferDays: Optional[int] = None
     subtasks: Optional[List[Dict[str, Any]]] = None
+    assignedEmployeeId: Optional[Any] = None
+    assignedEmployeeName: Optional[str] = None
+    assignedEmployee: Optional[Dict[str, Any]] = None
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -126,6 +137,9 @@ class TaskUpdate(BaseModel):
     taskDailyLogs: Optional[List[Dict[str, Any]]] = None
     taskDailyLogsCompleted: Optional[int] = None
     prerequisitesChecklist: Optional[List[Dict[str, Any]]] = None
+    assignedEmployeeId: Optional[Any] = None
+    assignedEmployeeName: Optional[str] = None
+    assignedEmployee: Optional[Dict[str, Any]] = None
 
 class ProjectUpdate(BaseModel):
     name: Optional[str] = None
@@ -187,6 +201,16 @@ def map_db_task_to_frontend(t: dict) -> dict:
     t["extensionDayLogs"] = t.pop("extension_day_logs", None)
     t["prerequisitesChecklist"] = t.pop("prerequisites_checklist", None)
     
+    t["assignedEmployeeId"] = t.pop("assigned_employee_id", None)
+    t["assignedEmployeeName"] = t.pop("assigned_employee_name", None)
+    if t.get("assignedEmployeeId") or t.get("assignedEmployeeName"):
+        t["assignedEmployee"] = {
+            "id": t.get("assignedEmployeeId"),
+            "name": t.get("assignedEmployeeName")
+        }
+    else:
+        t["assignedEmployee"] = None
+
     t["delegateRequestStatus"] = None
     t["delegatedTo"] = None
     t["delegateRequestedBy"] = None
@@ -200,6 +224,8 @@ def map_frontend_task_to_db(t: dict) -> dict:
         "id": "id",
         "projectId": "project_id",
         "assignedTo": "assigned_to",
+        "assignedEmployeeId": "assigned_employee_id",
+        "assignedEmployeeName": "assigned_employee_name",
         "durationValue": "duration_value",
         "durationUnit": "duration_unit",
         "estimatedDays": "estimated_days",
