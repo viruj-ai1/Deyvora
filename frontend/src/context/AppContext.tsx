@@ -119,9 +119,11 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 
 
   const updateTask = async (taskId: string, taskUpdates: any) => {
+    // Optimistic update
+    setTasks(prev => prev.map(t => String(t.id) === String(taskId) ? { ...t, ...taskUpdates } : t));
     try {
       const res = await axios.put(`${API_BASE}/tasks/${taskId}`, taskUpdates);
-      setTasks(prev => prev.map(t => t.id === taskId ? res.data : t));
+      setTasks(prev => prev.map(t => String(t.id) === String(taskId) ? { ...t, ...res.data } : t));
     } catch (error) {
       console.error('Error updating task:', error);
     }

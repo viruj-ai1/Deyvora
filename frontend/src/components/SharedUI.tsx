@@ -254,7 +254,15 @@ export const ActionPointsManager = ({
   const isSubtask = Boolean(subtaskId !== undefined && subtaskId !== null);
   const currentSubtask = isSubtask ? (task?.subtasks || []).find((st: any) => String(st.id) === String(subtaskId)) : null;
   const targetObj = isSubtask ? currentSubtask : task;
-  const actionPoints = targetObj?.actionPoints || targetObj?.action_points || [];
+
+  const [actionPoints, setActionPoints] = React.useState<any[]>(
+    targetObj?.actionPoints || targetObj?.action_points || []
+  );
+
+  React.useEffect(() => {
+    const current = targetObj?.actionPoints || targetObj?.action_points || [];
+    setActionPoints(current);
+  }, [targetObj?.actionPoints, targetObj?.action_points]);
 
   const saveActionPoints = (newActionPoints: any[]) => {
     if (!updateTask || !task?.id) return;
@@ -285,6 +293,7 @@ export const ActionPointsManager = ({
       completed: false
     };
     const updated = [...actionPoints, newAp];
+    setActionPoints(updated);
     saveActionPoints(updated);
   };
 
@@ -307,11 +316,13 @@ export const ActionPointsManager = ({
       }
       return ap;
     });
+    setActionPoints(updated);
     saveActionPoints(updated);
   };
 
   const handleDeleteActionPoint = (apId: any) => {
     const updated = actionPoints.filter((ap: any) => String(ap.id) !== String(apId));
+    setActionPoints(updated);
     saveActionPoints(updated);
   };
 
@@ -320,15 +331,12 @@ export const ActionPointsManager = ({
       <div className="flex items-center justify-between border-b border-gray-100 pb-2">
         <h4 className="font-extrabold text-gray-900 text-sm flex items-center gap-2">
           <span>Action Points</span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            {actionPoints.filter((ap: any) => ap.completed || ap.done).length}/{actionPoints.length} Done
-          </span>
         </h4>
         {!readOnly && (
           <button
             type="button"
             onClick={handleAddActionPoint}
-            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200 shadow-sm"
+            className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200 shadow-sm cursor-pointer"
           >
             + Add Action Point
           </button>

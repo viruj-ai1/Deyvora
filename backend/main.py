@@ -39,6 +39,10 @@ def startup_event():
     except Exception as e:
         print("Migration assigned_employee_name:", e)
     try:
+        execute_query("ALTER TABLE public.tasks ADD COLUMN action_points JSONB DEFAULT '[]';", returning=False)
+    except Exception as e:
+        print("Migration action_points:", e)
+    try:
         execute_query("""
             DELETE FROM public.tasks 
             WHERE project_id IN (
@@ -200,6 +204,7 @@ def map_db_task_to_frontend(t: dict) -> dict:
     t["taskDailyLogs"] = t.pop("task_daily_logs", None)
     t["extensionDayLogs"] = t.pop("extension_day_logs", None)
     t["prerequisitesChecklist"] = t.pop("prerequisites_checklist", None)
+    t["actionPoints"] = t.pop("action_points", None) or []
     
     t["assignedEmployeeId"] = t.pop("assigned_employee_id", None)
     t["assignedEmployeeName"] = t.pop("assigned_employee_name", None)
@@ -243,6 +248,8 @@ def map_frontend_task_to_db(t: dict) -> dict:
         "taskDailyLogs": "task_daily_logs",
         "extensionDayLogs": "extension_day_logs",
         "prerequisitesChecklist": "prerequisites_checklist",
+        "actionPoints": "action_points",
+        "action_points": "action_points",
         "predecessors": "predecessors",
         "title": "title",
         "specs": "specs",
@@ -251,7 +258,7 @@ def map_frontend_task_to_db(t: dict) -> dict:
     for k, v in t.items():
         if k in key_mapping:
             db_key = key_mapping[k]
-            if k in ["subtasks", "taskDailyLogs", "extensionDayLogs", "prerequisitesChecklist"]:
+            if k in ["subtasks", "taskDailyLogs", "extensionDayLogs", "prerequisitesChecklist", "actionPoints", "action_points"]:
                 db_t[db_key] = Json(v) if v is not None else Json([])
             elif k == "assignedTo":
                 if isinstance(v, str):
