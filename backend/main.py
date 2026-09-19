@@ -110,6 +110,8 @@ class Task(BaseModel):
     assignedDays: Optional[int] = None
     bufferDays: Optional[int] = None
     subtasks: Optional[List[Dict[str, Any]]] = None
+    actionPoints: Optional[List[Dict[str, Any]]] = None
+    action_points: Optional[List[Dict[str, Any]]] = None
     assignedEmployeeId: Optional[Any] = None
     assignedEmployeeName: Optional[str] = None
     assignedEmployee: Optional[Dict[str, Any]] = None
@@ -120,6 +122,8 @@ class TaskUpdate(BaseModel):
     status: Optional[str] = None
     assignedTo: Optional[Any] = None
     subtasks: Optional[List[Dict[str, Any]]] = None
+    actionPoints: Optional[List[Dict[str, Any]]] = None
+    action_points: Optional[List[Dict[str, Any]]] = None
     estimatedDays: Optional[int] = None
     estimateUnit: Optional[str] = None
     originalEstimate: Optional[float] = None
