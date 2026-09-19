@@ -67,6 +67,31 @@ export const TaskAssigneeControl = ({
   const isAssigned = !isPlanningPhase && Boolean(assignedEmployeeName);
   const displayText = isAssigned ? `Assigned to - ${assignedEmployeeName}` : 'Assigned to - None';
 
+  const [isCustomTyping, setIsCustomTyping] = React.useState(false);
+  const [customNameValue, setCustomNameValue] = React.useState(assignedEmployeeName || '');
+
+  React.useEffect(() => {
+    setCustomNameValue(assignedEmployeeName || '');
+  }, [assignedEmployeeName]);
+
+  const handleSaveCustomName = () => {
+    const trimmed = customNameValue.trim();
+    if (!trimmed) {
+      updateTask!(task.id, {
+        assignedEmployeeId: null,
+        assignedEmployeeName: null,
+        assignedEmployee: null
+      });
+    } else {
+      updateTask!(task.id, {
+        assignedEmployeeId: `custom-${Date.now()}`,
+        assignedEmployeeName: trimmed,
+        assignedEmployee: { id: `custom-${Date.now()}`, name: trimmed, role: 'Employee' }
+      });
+    }
+    setIsCustomTyping(false);
+  };
+
   if (!canModify) {
     return (
       <span className={`text-xs font-semibold px-2.5 py-1 rounded-md border shadow-sm ${
@@ -79,22 +104,62 @@ export const TaskAssigneeControl = ({
     );
   }
 
+  if (isCustomTyping) {
+    return (
+      <div className={`inline-flex items-center gap-1.5 bg-blue-50/80 px-2 py-1 rounded-lg border border-blue-300 shadow-sm ${className}`}>
+        <span className="text-xs font-bold text-gray-700 whitespace-nowrap">Assigned to -</span>
+        <input
+          type="text"
+          autoFocus
+          placeholder="Type employee name..."
+          value={customNameValue}
+          onChange={(e) => setCustomNameValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleSaveCustomName();
+            if (e.key === 'Escape') setIsCustomTyping(false);
+          }}
+          onBlur={handleSaveCustomName}
+          className="text-xs font-bold px-2 py-0.5 rounded border border-blue-400 bg-white text-gray-900 outline-none focus:ring-2 focus:ring-blue-500 shadow-sm min-w-[130px]"
+        />
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            setIsCustomTyping(false);
+          }}
+          className="text-xs font-bold text-gray-400 hover:text-gray-700 px-1"
+          title="Cancel typing"
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  const isMatchedEmployee = subEmployees.some((emp: any) => String(emp.id) === String(task?.assignedEmployeeId));
+  const selectValue = isPlanningPhase ? '' : (isMatchedEmployee ? String(task?.assignedEmployeeId) : (assignedEmployeeName ? '__custom__' : ''));
+
   return (
     <div className={`inline-flex items-center gap-1.5 ${className}`}>
       <select
-        value={isPlanningPhase ? '' : (task?.assignedEmployeeId || '')}
+        value={selectValue}
         onChange={(e) => {
-          const empId = e.target.value;
-          if (!empId) {
+          const val = e.target.value;
+          if (val === '__custom__') {
+            setCustomNameValue(assignedEmployeeName || '');
+            setIsCustomTyping(true);
+          } else if (!val) {
+            setIsCustomTyping(false);
             updateTask!(task.id, {
               assignedEmployeeId: null,
               assignedEmployeeName: null,
               assignedEmployee: null
             });
           } else {
-            const selectedUser = users.find((u: any) => String(u.id) === String(empId));
+            setIsCustomTyping(false);
+            const selectedUser = users.find((u: any) => String(u.id) === String(val));
             updateTask!(task.id, {
-              assignedEmployeeId: empId,
+              assignedEmployeeId: val,
               assignedEmployeeName: selectedUser ? selectedUser.name : '',
               assignedEmployee: selectedUser ? { id: selectedUser.id, name: selectedUser.name, role: selectedUser.role } : null
             });
@@ -112,6 +177,10 @@ export const TaskAssigneeControl = ({
             Assigned to - {emp.name}
           </option>
         ))}
+        {!isMatchedEmployee && assignedEmployeeName && (
+          <option value="__custom__">Assigned to - {assignedEmployeeName}</option>
+        )}
+        <option value="__custom__">✍️ Type custom name...</option>
       </select>
     </div>
   );
